@@ -25,6 +25,9 @@ class AuthController(val authService: AuthService) {
     }
 }
 
+//this are different api which can be access by Public API (/public/): Accessible by anyone without authentication.
+// Admin API (/admin/): Requires admin-level authentication and authorization.
+// User API (/user/): Requires user-level authentication and authorization.
 @RestController
 @RequestMapping("/public")
 class PublicController {
