@@ -19,13 +19,13 @@ class AuthService(
     private val authenticationManager: AuthenticationManager
 
 ) {
-    fun registerUser(userDto: UserRegistrationDto): User {
-        val passwordHash = passwordEncoder.encode(userDto.password)
+    fun registerUser(userDto: UserRegistrationDto): User {       
+        val passwordHash = passwordEncoder.encode(userDto.password) //when registering the hash password is stored, not the plain text password 
         val user = User(username = userDto.username, passwordHash = passwordHash)
         return userRepository.save(user)
     }
 
-    fun loginUser(username: String, password: String): AuthResponse {
+    fun loginUser(username: String, password: String): AuthResponse {    // Handles user login and JWT generation.
         // does verification of username and password
         val authToken = UsernamePasswordAuthenticationToken(username, password)
         authenticationManager.authenticate(authToken)
@@ -39,12 +39,12 @@ class AuthService(
         return AuthResponse(accessToken = accessToken, refreshToken = refreshToken)
     }
 
-    fun refreshToken(refreshToken: String): AuthResponse? {
-        val username = jwtUtil.extractUsername(refreshToken)
-        val userDetails = userDetailsService.loadUserByUsername(username)
-        val user = userRepository.findByUsername(username).get()
-        if (user.refreshToken == refreshToken ) {
-            val newAccessToken = jwtUtil.generateAccessToken(userDetails)
+    fun refreshToken(refreshToken: String): AuthResponse? {            
+        val username = jwtUtil.extractUsername(refreshToken)     //the jwt refresh token in Header.Payload.Signature format so from the payload the username is extracted 
+        val userDetails = userDetailsService.loadUserByUsername(username)  
+        val user = userRepository.findByUsername(username).get()  //user is fetch from db
+        if (user.refreshToken == refreshToken ) { //matches the refresher token and assignes new tokens  
+            val newAccessToken = jwtUtil.generateAccessToken(userDetails) 
             val newRefreshToken = jwtUtil.generateRefreshToken(userDetails)
             user.refreshToken = newRefreshToken
             userRepository.save(user)
