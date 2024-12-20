@@ -14,26 +14,14 @@ import org.springframework.web.filter.OncePerRequestFilter
 class JwtAuthenticationFilter(private val jwtUtil: JwtUtil) : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
-
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response)
-            return
-        }
-        val token = authHeader.substring(7) // remove bearer
-
-        val username = jwtUtil.extractUsername(token)
-
-        if(username != null && SecurityContextHolder.getContext().authentication == null) {
-            val roles = jwtUtil.extractRoles(token)
-
-            if(jwtUtil.isTokenExpired(token)) {
-                filterChain.doFilter(request, response)
-                return
+        if (authHeader?.startsWith("Bearer ") == true) {
+            val token = authHeader.substring(7)
+            val username = jwtUtil.extractUsername(token)
+            if (username != null && SecurityContextHolder.getContext().authentication == null && !jwtUtil.isTokenExpired(token)) {
+                val authorities = jwtUtil.extractRoles(token).map { role -> SimpleGrantedAuthority("ROLE_$role") }
+                val authentication = UsernamePasswordAuthenticationToken(username, null, authorities)
+                SecurityContextHolder.getContext().authentication = authentication
             }
-            val authorities = roles.map { role -> SimpleGrantedAuthority("ROLE_$role") }
-            val authentication = UsernamePasswordAuthenticationToken(username, null, authorities)
-
-            SecurityContextHolder.getContext().authentication = authentication
         }
         filterChain.doFilter(request, response)
     }

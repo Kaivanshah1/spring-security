@@ -43,7 +43,7 @@ class AuthService(
         val username = jwtUtil.extractUsername(refreshToken)
         val userDetails = userDetailsService.loadUserByUsername(username)
         val user = userRepository.findByUsername(username).get()
-        if (user.refreshToken == refreshToken && !jwtUtil.isTokenExpired(refreshToken)) {
+        if (user.refreshToken == refreshToken ) {
             val newAccessToken = jwtUtil.generateAccessToken(userDetails)
             val newRefreshToken = jwtUtil.generateRefreshToken(userDetails)
             user.refreshToken = newRefreshToken
@@ -52,6 +52,4 @@ class AuthService(
         }
         return null
     }
-
-
 }
